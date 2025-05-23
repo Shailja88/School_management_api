@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>School Management</title>
+</head>
+<body>
+  <h1>School Management API Tester</h1>
+
+  <h2>Add School</h2>
+  <form id="addSchoolForm">
+    <label>
+      Name: <input type="text" id="name" required />
+    </label><br />
+    <label>
+      Address: <input type="text" id="address" required />
+    </label><br />
+    <label>
+      Latitude: <input type="number" step="any" id="latitude" required />
+    </label><br />
+    <label>
+      Longitude: <input type="number" step="any" id="longitude" required />
+    </label><br />
+    <button type="submit">Add School</button>
+  </form>
+
+  <hr />
+
+  <h2>List Schools by Location</h2>
+  <form id="listSchoolsForm">
+    <label>
+      Your Latitude: <input type="number" step="any" id="userLat" required />
+    </label><br />
+    <label>
+      Your Longitude: <input type="number" step="any" id="userLon" required />
+    </label><br />
+    <button type="submit">Get Schools</button>
+  </form>
+
+  <h3>Schools Near You:</h3>
+  <ul id="schoolsList"></ul>
+
+  <script>
+    const addForm = document.getElementById('addSchoolForm');
+    const listForm = document.getElementById('listSchoolsForm');
+    const schoolsList = document.getElementById('schoolsList');
+
+    const API_BASE = 'http://localhost:4000/api'; // Change if deployed
+
+    addForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const latitude = parseFloat(document.getElementById('latitude').value);
+      const longitude = parseFloat(document.getElementById('longitude').value);
+
+      try {
+        const res = await fetch(`${API_BASE}/addSchool`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, address, latitude, longitude })
+        });
+        const data = await res.json();
+        if(res.ok) {
+          alert(`School added with ID: ${data.id}`);
+          addForm.reset();
+        } else {
+          alert('Error: ' + JSON.stringify(data.errors || data.error));
+        }
+      } catch (err) {
+        alert('Network error: ' + err.message);
+      }
+    });
+
+    listForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userLat = parseFloat(document.getElementById('userLat').value);
+      const userLon = parseFloat(document.getElementById('userLon').value);
+
+      try {
+        const res = await fetch(`${API_BASE}/listSchools?latitude=${userLat}&longitude=${userLon}`);
+        const data = await res.json();
+        if(res.ok) {
+          schoolsList.innerHTML = '';
+          if(data.length === 0) {
+            schoolsList.innerHTML = '<li>No schools found.</li>';
+          } else {
+            data.forEach(school => {
+              const li = document.createElement('li');
+              li.textContent = `${school.name} - ${school.address} (Distance: ${school.distance.toFixed(2)} km)`;
+              schoolsList.appendChild(li);
+            });
+          }
+        } else {
+          alert('Error: ' + JSON.stringify(data.errors || data.error));
+        }
+      } catch (err) {
+        alert('Network error: ' + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

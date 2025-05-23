@@ -1,10 +1,13 @@
 const express = require('express');
 const path = require('path');
 const dotenv = require('dotenv');
+const cors = require('cors');
+
 dotenv.config();
 
 const schoolRoutes = require('./routes/schoolRoutes');
 const app = express();
+app.use(cors());
 
 app.use(express.json());
 
